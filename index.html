@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Server</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .terminal {
+      width: 90%;
+      max-width: 1000px;
+      height: 85vh;
+      background: #000;
+      border: 2px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 0 50px rgba(0, 255, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .terminal-header {
+      background: #1a1a1a;
+      padding: 10px 15px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .terminal-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .btn-red { background: #ff5f56; }
+    .btn-yellow { background: #ffbd2e; }
+    .btn-green { background: #27c93f; }
+    
+    .terminal-title {
+      margin-left: 15px;
+      color: #888;
+      font-size: 12px;
+    }
+    
+    .terminal-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .prompt {
+      color: #00ff00;
+    }
+    
+    .prompt-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .prompt-text {
+      color: #0af;
+      margin-right: 5px;
+    }
+    
+    input {
+      background: transparent;
+      border: none;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      outline: none;
+      flex: 1;
+    }
+    
+    input[type="password"] {
+      color: #00ff00;
+    }
+    
+    button {
+      display: none;
+    }
+    
+    .output {
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+    
+    .error {
+      color: #ff3333;
+    }
+    
+    .success {
+      color: #00ff00;
+    }
+    
+    .info {
+      color: #0af;
+    }
+    
+    .warning {
+      color: #ffbd2e;
+    }
+    
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #00ff00;
+      animation: blink 1s infinite;
+      margin-left: 2px;
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .server-interface {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .command-line {
+      display: flex;
+      align-items: center;
+    }
+    
+    .command-prompt {
+      color: #0af;
+      margin-right: 5px;
+    }
+    
+    .log-entry {
+      margin: 5px 0;
+      padding-left: 10px;
+      border-left: 2px solid #0af;
+    }
+    
+    .endpoint-info {
+      color: #ffbd2e;
+      margin: 5px 0;
+    }
+    
+    .api-key-box {
+      background: #1a1a1a;
+      border: 1px solid #0af;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    
+    .code-block {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-btn btn-red"></div>
+      <div class="terminal-btn btn-yellow"></div>
+      <div class="terminal-btn btn-green"></div>
+      <span class="terminal-title">server@terminal ~ backend-server</span>
+    </div>
+    
+    <div class="terminal-body" id="terminal">
+      <!-- Login Screen -->
+      <div id="loginScreen" class="login-screen">
+        <div class="output success">
+╔══════════════════════════════════════════╗
+║     SECURE BACKEND SERVER v2.1.0         ║
+║     Authorization Required               ║
+╚══════════════════════════════════════════╝
+        </div>
+        <div class="output info">System initialized at [<span id="initTime"></span>]</div>
+        <div class="output">Establishing secure connection... [OK]</div>
+        <div class="output" style="margin-bottom: 20px;">───────────────────────────────────────────</div>
+        
+        <div class="prompt-line">
+          <span class="prompt-text">Username:</span>
+          <input type="text" id="username" autocomplete="off" autofocus>
+        </div>
+        
+        <div class="prompt-line hidden" id="passwordPrompt">
+          <span class="prompt-text">Password:</span>
+          <input type="password" id="password" autocomplete="off">
+        </div>
+      </div>
+      
+      <!-- Server Interface -->
+      <div id="serverInterface" class="server-interface">
+        <div class="output success">
+╔══════════════════════════════════════════╗
+║        ACCESS GRANTED - WELCOME          ║
+╚══════════════════════════════════════════╝
+        </div>
+        <div class="output info" id="welcomeMsg"></div>
+        <div class="output" style="margin-bottom: 10px;">───────────────────────────────────────────</div>
+        
+        <div class="output">Available endpoints:</div>
+        <div class="endpoint-info">  [POST]   /api/auth/verify    - Verify API key</div>
+        <div class="endpoint-info">  [GET]    /api/status         - Server status</div>
+        <div class="endpoint-info">  [GET]    /api/data           - Get data</div>
+        <div class="endpoint-info">  [POST]   /api/data           - Create data</div>
+        <div class="endpoint-info">  [GET]    /api/users/:id      - Get user</div>
+        <div class="endpoint-info">  [POST]   /api/game/score     - Submit game score</div>
+        <div class="endpoint-info">  [GET]    /api/game/leaderboard - Get leaderboard</div>
+        <div class="output" style="margin: 15px 0;">───────────────────────────────────────────</div>
+        
+        <div id="logs"></div>
+        
+        <div class="command-line" style="margin-top: 20px;">
+          <span class="command-prompt">server@backend:~$</span>
+          <input type="text" id="commandInput" autocomplete="off" placeholder="type 'help' for commands">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize
+    document.getElementById('initTime').textContent = new Date().toLocaleString();
+    
+    // API Key Management
+    const API_KEYS = {
+      'sk_live_a3b9c8d7e6f5g4h3i2j1k0l9m8n7o6p5': {
+        name: 'Production Key',
+        active: true,
+        permissions: ['read', 'write'],
+        createdAt: '2025-12-14'
+      },
+      'sk_test_x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6': {
+        name: 'Test Key',
+        active: true,
+        permissions: ['read', 'write'],
+        createdAt: '2025-12-14'
+      }
+    };
+    
+    // Users database
+    const users = {
+      'admin': 'admin123',
+      'root': 'password',
+      'user': 'user'
+    };
+    
+    // Server data
+    const db = {
+      users: [
+        { id: 1, name: "Alice", email: "alice@example.com" },
+        { id: 2, name: "Bob", email: "bob@example.com" }
+      ],
+      data: [],
+      scores: []
+    };
+    
+    let currentUser = null;
+    
+    // Login handling
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const passwordPrompt = document.getElementById('passwordPrompt');
+    const loginScreen = document.getElementById('loginScreen');
+    const serverInterface = document.getElementById('serverInterface');
+    
+    usernameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const username = usernameInput.value.trim();
+        if (username) {
+          usernameInput.disabled = true;
+          passwordPrompt.classList.remove('hidden');
+          passwordInput.focus();
+        }
+      }
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (users[username] && users[username] === password) {
+          currentUser = username;
+          loginSuccess();
+        } else {
+          loginFailed();
+        }
+      }
+    });
+    
+    function loginSuccess() {
+      loginScreen.style.display = 'none';
+      serverInterface.style.display = 'flex';
+      document.getElementById('welcomeMsg').textContent = `Logged in as: ${currentUser}@server [${new Date().toLocaleTimeString()}]`;
+      document.getElementById('commandInput').focus();
+      log('Server ready. Type "help" for available commands.');
+    }
+    
+    function loginFailed() {
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'output error';
+      errorMsg.textContent = '\n[ERROR] Authentication failed. Access denied.';
+      loginScreen.appendChild(errorMsg);
+      
+      setTimeout(() => {
+        passwordInput.value = '';
+        usernameInput.value = '';
+        usernameInput.disabled = false;
+        passwordPrompt.classList.add('hidden');
+        usernameInput.focus();
+        errorMsg.remove();
+      }, 2000);
+    }
+    
+    // Command handling
+    const commandInput = document.getElementById('commandInput');
+    const logsDiv = document.getElementById('logs');
+    
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const time = new Date().toLocaleTimeString();
+      entry.textContent = `[${time}] ${message}`;
+      logsDiv.appendChild(entry);
+      logsDiv.scrollTop = logsDiv.scrollHeight;
+    }
+    
+    function verifyApiKey(apiKey) {
+      const key = API_KEYS[apiKey];
+      if (!key) return { valid: false, error: 'Invalid API key' };
+      if (!key.active) return { valid: false, error: 'API key is inactive' };
+      return { valid: true, key: key };
+    }
+    
+    function handleRequest(method, path, body, headers = {}) {
+      const apiKey = headers['x-api-key'] || headers['authorization']?.replace('Bearer ', '');
+      
+      // Auth verification endpoint (doesn't require key)
+      if (path === '/api/auth/verify' && method === 'POST') {
+        const result = verifyApiKey(body.apiKey);
+        return result.valid 
+          ? { success: true, message: 'API key is valid', keyInfo: result.key }
+          : { success: false, error: result.error };
+      }
+      
+      // All other endpoints require valid API key
+      if (!apiKey || !verifyApiKey(apiKey).valid) {
+        return { error: 'Unauthorized - Valid API key required', status: 401 };
+      }
+      
+      // Existing endpoints
+      if (path === '/api/status' && method === 'GET') {
+        return { status: 'ok', message: 'Server is running', timestamp: Date.now() };
+      }
+      
+      if (path === '/api/data' && method === 'GET') {
+        return { data: db.data, count: db.data.length };
+      }
+      
+      if (path === '/api/data' && method === 'POST') {
+        const newItem = { id: Date.now(), ...body };
+        db.data.push(newItem);
+        return { success: true, data: newItem };
+      }
+      
+      if (path.startsWith('/api/users/') && method === 'GET') {
+        const id = parseInt(path.split('/')[3]);
+        const user = db.users.find(u => u.id === id);
+        return user ? { user } : { error: 'User not found' };
+      }
+      
+      // Game endpoints
+      if (path === '/api/game/score' && method === 'POST') {
+        const score = {
+          id: Date.now(),
+          player: body.player || 'Anonymous',
+          score: body.score || 0,
+          timestamp: Date.now()
+        };
+        db.scores.push(score);
+        db.scores.sort((a, b) => b.score - a.score);
+        return { success: true, score, rank: db.scores.indexOf(score) + 1 };
+      }
+      
+      if (path === '/api/game/leaderboard' && method === 'GET') {
+        return { 
+          leaderboard: db.scores.slice(0, 10),
+          total: db.scores.length
+        };
+      }
+      
+      return { error: 'Endpoint not found', status: 404 };
+    }
+    
+    commandInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = commandInput.value.trim();
+        if (cmd) {
+          executeCommand(cmd);
+          commandInput.value = '';
+        }
+      }
+    });
+    
+    function executeCommand(cmd) {
+      log(`> ${cmd}`, 'info');
+      
+      const parts = cmd.split(' ');
+      const command = parts[0].toLowerCase();
+      
+      if (command === 'help') {
+        log('Available commands:', 'success');
+        log('  help              - Show this help message');
+        log('  apikeys           - Show API keys');
+        log('  integrate         - Show integration code');
+        log('  status            - Check server status');
+        log('  get <endpoint>    - GET request to endpoint');
+        log('  post <endpoint> <json> - POST request with JSON body');
+        log('  users             - List all users');
+        log('  scores            - Show game scores');
+        log('  clear             - Clear the screen');
+        log('  logout            - Logout from server');
+      } else if (command === 'apikeys') {
+        log('═══════════════ API KEYS ═══════════════', 'warning');
+        Object.entries(API_KEYS).forEach(([key, info]) => {
+          log(`\nKey: ${key}`, 'success');
+          log(`  Name: ${info.name}`);
+          log(`  Status: ${info.active ? 'ACTIVE' : 'INACTIVE'}`);
+          log(`  Permissions: ${info.permissions.join(', ')}`);
+          log(`  Created: ${info.createdAt}`);
+        });
+        log('\n════════════════════════════════════════', 'warning');
+      } else if (command === 'integrate') {
+        log('═══════════ INTEGRATION CODE ═══════════', 'warning');
+        log('\nCopy this code into your game HTML file:\n', 'success');
+        
+        const integrationCode = `<script>
+// Backend Server Integration
+const API_KEY = 'sk_test_x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6';
+const SERVER_URL = window.location.origin;
+
+// Make API request
+async function apiRequest(endpoint, method = 'GET', data = null) {
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    }
+  };
+  
+  if (data) {
+    options.body = JSON.stringify(data);
+  }
+  
+  const response = await fetch(SERVER_URL + endpoint, options);
+  return await response.json();
+}
+
+// Submit game score
+async function submitScore(playerName, score) {
+  const result = await apiRequest('/api/game/score', 'POST', {
+    player: playerName,
+    score: score
+  });
+  console.log('Score submitted:', result);
+  return result;
+}
+
+// Get leaderboard
+async function getLeaderboard() {
+  const result = await apiRequest('/api/game/leaderboard');
+  console.log('Leaderboard:', result);
+  return result;
+}
+
+// Example usage:
+// submitScore('Player1', 1000);
+// getLeaderboard();
+<\/script>`;
+        
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-block';
+        codeBlock.textContent = integrationCode;
+        logsDiv.appendChild(codeBlock);
+        
+        log('\n════════════════════════════════════════', 'warning');
+        log('API endpoints available:', 'info');
+        log('  /api/game/score (POST) - Submit score');
+        log('  /api/game/leaderboard (GET) - Get top scores');
+        log('  /api/data (GET/POST) - Store custom data');
+      } else if (command === 'status') {
+        const response = handleRequest('GET', '/api/status', null, {'x-api-key': Object.keys(API_KEYS)[0]});
+        log(`Server Status: ${response.status?.toUpperCase() || 'ERROR'}`, response.error ? 'error' : 'success');
+        log(`Response: ${JSON.stringify(response, null, 2)}`);
+      } else if (command === 'get') {
+        const endpoint = parts[1] || '/api/status';
+        const response = handleRequest('GET', endpoint, null, {'x-api-key': Object.keys(API_KEYS)[0]});
+        log(`Response: ${JSON.stringify(response, null, 2)}`, response.error ? 'error' : 'success');
+      } else if (command === 'post') {
+        const endpoint = parts[1];
+        const jsonData = parts.slice(2).join(' ');
+        try {
+          const body = jsonData ? JSON.parse(jsonData) : {};
+          const response = handleRequest('POST', endpoint, body, {'x-api-key': Object.keys(API_KEYS)[0]});
+          log(`Response: ${JSON.stringify(response, null, 2)}`, response.error ? 'error' : 'success');
+        } catch (e) {
+          log('Invalid JSON format', 'error');
+        }
+      } else if (command === 'users') {
+        log('Registered users:', 'success');
+        db.users.forEach(u => log(`  [${u.id}] ${u.name} - ${u.email}`));
+      } else if (command === 'scores') {
+        if (db.scores.length === 0) {
+          log('No scores recorded yet', 'warning');
+        } else {
+          log('═══════════ LEADERBOARD ═══════════', 'success');
+          db.scores.slice(0, 10).forEach((s, i) => {
+            log(`  ${i + 1}. ${s.player} - ${s.score} pts`);
+          });
+          log('════════════════════════════════════', 'success');
+        }
+      } else if (command === 'clear') {
+        logsDiv.innerHTML = '';
+      } else if (command === 'logout') {
+        location.reload();
+      } else {
+        log(`Unknown command: ${command}. Type 'help' for available commands.`, 'error');
+      }
+    }
+    
+    // Make handleRequest available globally for external integration
+    window.serverAPI = {
+      request: handleRequest,
+      verifyKey: verifyApiKey
+    };
+  </script>
+</body>
+</html>
