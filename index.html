@@ -473,6 +473,8 @@
         log('  post <endpoint> <json> - POST request with JSON body');
         log('  users             - List all users');
         log('  scores            - Show game scores');
+        log('  gamedata          - View all game data (raw JSON)');
+        log('  clearscores       - Clear all game scores');
         log('  clear             - Clear the screen');
         log('  logout            - Logout from server');
       } else if (command === 'apikeys') {
@@ -566,15 +568,38 @@ async function getLeaderboard() {
         log('Registered users:', 'success');
         db.users.forEach(u => log(`  [${u.id}] ${u.name} - ${u.email}`));
       } else if (command === 'scores') {
-        if (db.scores.length === 0) {
-          log('No scores recorded yet', 'warning');
+        // Read from the shared localStorage that the game uses
+        const gameData = localStorage.getItem('spaceShooter_serverData');
+        if (gameData) {
+          const data = JSON.parse(gameData);
+          if (data.scores && data.scores.length > 0) {
+            log('═══════════ GAME LEADERBOARD ═══════════', 'success');
+            data.scores.slice(0, 10).forEach((s, i) => {
+              const date = new Date(s.timestamp).toLocaleString();
+              log(`  ${i + 1}. ${s.player} - ${s.score} pts [${date}]`);
+            });
+            log(`Total scores: ${data.scores.length}`, 'info');
+            log('════════════════════════════════════════', 'success');
+          } else {
+            log('No game scores found', 'warning');
+          }
         } else {
-          log('═══════════ LEADERBOARD ═══════════', 'success');
-          db.scores.slice(0, 10).forEach((s, i) => {
-            log(`  ${i + 1}. ${s.player} - ${s.score} pts`);
-          });
-          log('════════════════════════════════════', 'success');
+          log('No game data found. Play the game first!', 'warning');
         }
+      } else if (command === 'gamedata') {
+        const gameData = localStorage.getItem('spaceShooter_serverData');
+        if (gameData) {
+          log('Raw game data:', 'info');
+          const codeBlock = document.createElement('div');
+          codeBlock.className = 'code-block';
+          codeBlock.textContent = JSON.stringify(JSON.parse(gameData), null, 2);
+          logsDiv.appendChild(codeBlock);
+        } else {
+          log('No game data found', 'warning');
+        }
+      } else if (command === 'clearscores') {
+        localStorage.removeItem('spaceShooter_serverData');
+        log('All game scores cleared!', 'success');
       } else if (command === 'clear') {
         logsDiv.innerHTML = '';
       } else if (command === 'logout') {
