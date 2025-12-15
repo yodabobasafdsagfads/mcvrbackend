@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terminal Server</title>
+  <title>Global Backend Server</title>
   <style>
     * {
       margin: 0;
@@ -17,19 +17,12 @@
       color: #00ff00;
       height: 100vh;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     
     .terminal {
-      width: 90%;
-      max-width: 1000px;
-      height: 85vh;
+      width: 100vw;
+      height: 100vh;
       background: #000;
-      border: 2px solid #333;
-      border-radius: 8px;
-      box-shadow: 0 0 50px rgba(0, 255, 0, 0.3);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -60,6 +53,12 @@
       font-size: 12px;
     }
     
+    .terminal-status {
+      margin-left: auto;
+      font-size: 12px;
+      color: #0af;
+    }
+    
     .terminal-body {
       flex: 1;
       padding: 20px;
@@ -72,10 +71,6 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
-    }
-    
-    .prompt {
-      color: #00ff00;
     }
     
     .prompt-line {
@@ -103,10 +98,6 @@
       color: #00ff00;
     }
     
-    button {
-      display: none;
-    }
-    
     .output {
       margin: 10px 0;
       white-space: pre-wrap;
@@ -128,20 +119,6 @@
       color: #ffbd2e;
     }
     
-    .cursor {
-      display: inline-block;
-      width: 8px;
-      height: 16px;
-      background: #00ff00;
-      animation: blink 1s infinite;
-      margin-left: 2px;
-    }
-    
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-    
     .hidden {
       display: none;
     }
@@ -150,11 +127,15 @@
       display: none;
       flex-direction: column;
       gap: 15px;
+      height: 100%;
     }
     
     .command-line {
       display: flex;
       align-items: center;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid #333;
     }
     
     .command-prompt {
@@ -173,14 +154,6 @@
       margin: 5px 0;
     }
     
-    .api-key-box {
-      background: #1a1a1a;
-      border: 1px solid #0af;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 4px;
-    }
-    
     .code-block {
       background: #1a1a1a;
       border: 1px solid #333;
@@ -189,6 +162,34 @@
       border-radius: 4px;
       overflow-x: auto;
       font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 15px 0;
+    }
+    
+    .stat-box {
+      background: #1a1a1a;
+      border: 1px solid #0af;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      color: #00ff00;
+      font-weight: bold;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
     }
     
     ::-webkit-scrollbar {
@@ -215,21 +216,24 @@
       <div class="terminal-btn btn-red"></div>
       <div class="terminal-btn btn-yellow"></div>
       <div class="terminal-btn btn-green"></div>
-      <span class="terminal-title">server@terminal ~ backend-server</span>
+      <span class="terminal-title">root@global-server ~ v3.0.0 GLOBAL MODE</span>
+      <span class="terminal-status" id="serverStatus">● ONLINE</span>
     </div>
     
     <div class="terminal-body" id="terminal">
       <!-- Login Screen -->
       <div id="loginScreen" class="login-screen">
         <div class="output success">
-╔══════════════════════════════════════════╗
-║     SECURE BACKEND SERVER v2.1.0         ║
-║     Authorization Required               ║
-╚══════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════╗
+║     GLOBAL BACKEND SERVER v3.0.0                     ║
+║     Cloud-Synchronized Database System               ║
+║     Authorization Required                           ║
+╚══════════════════════════════════════════════════════╝
         </div>
         <div class="output info">System initialized at [<span id="initTime"></span>]</div>
-        <div class="output">Establishing secure connection... [OK]</div>
-        <div class="output" style="margin-bottom: 20px;">───────────────────────────────────────────</div>
+        <div class="output">Connecting to global network... [OK]</div>
+        <div class="output">Establishing encrypted tunnel... [OK]</div>
+        <div class="output" style="margin-bottom: 20px;">──────────────────────────────────────────────────────</div>
         
         <div class="prompt-line">
           <span class="prompt-text">Username:</span>
@@ -245,27 +249,23 @@
       <!-- Server Interface -->
       <div id="serverInterface" class="server-interface">
         <div class="output success">
-╔══════════════════════════════════════════╗
-║        ACCESS GRANTED - WELCOME          ║
-╚══════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════╗
+║        ACCESS GRANTED - GLOBAL ADMIN MODE            ║
+╚══════════════════════════════════════════════════════╝
         </div>
         <div class="output info" id="welcomeMsg"></div>
-        <div class="output" style="margin-bottom: 10px;">───────────────────────────────────────────</div>
+        <div class="output" style="margin-bottom: 10px;">──────────────────────────────────────────────────────</div>
         
-        <div class="output">Available endpoints:</div>
-        <div class="endpoint-info">  [POST]   /api/auth/verify    - Verify API key</div>
-        <div class="endpoint-info">  [GET]    /api/status         - Server status</div>
-        <div class="endpoint-info">  [GET]    /api/data           - Get data</div>
-        <div class="endpoint-info">  [POST]   /api/data           - Create data</div>
-        <div class="endpoint-info">  [GET]    /api/users/:id      - Get user</div>
-        <div class="endpoint-info">  [POST]   /api/game/score     - Submit game score</div>
-        <div class="endpoint-info">  [GET]    /api/game/leaderboard - Get leaderboard</div>
-        <div class="output" style="margin: 15px 0;">───────────────────────────────────────────</div>
+        <div id="statsSection" style="display:none;">
+          <div class="output warning">═══ GLOBAL SERVER STATISTICS ═══</div>
+          <div class="stats-grid" id="statsGrid"></div>
+          <div class="output" style="margin: 15px 0;">──────────────────────────────────────────────────────</div>
+        </div>
         
         <div id="logs"></div>
         
-        <div class="command-line" style="margin-top: 20px;">
-          <span class="command-prompt">server@backend:~$</span>
+        <div class="command-line">
+          <span class="command-prompt">root@global:~#</span>
           <input type="text" id="commandInput" autocomplete="off" placeholder="type 'help' for commands">
         </div>
       </div>
@@ -276,22 +276,6 @@
     // Initialize
     document.getElementById('initTime').textContent = new Date().toLocaleString();
     
-    // API Key Management
-    const API_KEYS = {
-      'sk_live_a3b9c8d7e6f5g4h3i2j1k0l9m8n7o6p5': {
-        name: 'Production Key',
-        active: true,
-        permissions: ['read', 'write'],
-        createdAt: '2025-12-14'
-      },
-      'sk_test_x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6': {
-        name: 'Test Key',
-        active: true,
-        permissions: ['read', 'write'],
-        createdAt: '2025-12-14'
-      }
-    };
-    
     // Users database
     const users = {
       'admin': 'admin123',
@@ -299,17 +283,46 @@
       'user': 'user'
     };
     
-    // Server data
-    const db = {
-      users: [
-        { id: 1, name: "Alice", email: "alice@example.com" },
-        { id: 2, name: "Bob", email: "bob@example.com" }
-      ],
-      data: [],
-      scores: []
-    };
+    // Global storage key - shared across ALL users
+    const GLOBAL_STORAGE_KEY = 'global_backend_server_v3';
     
     let currentUser = null;
+    
+    // Global database functions with cloud storage
+    async function getGlobalData() {
+      try {
+        const data = await window.storage.get(GLOBAL_STORAGE_KEY, true); // true = shared/global
+        return data ? JSON.parse(data.value) : initializeDatabase();
+      } catch (error) {
+        console.log('Initializing new global database');
+        return initializeDatabase();
+      }
+    }
+    
+    async function saveGlobalData(data) {
+      try {
+        await window.storage.set(GLOBAL_STORAGE_KEY, JSON.stringify(data), true); // true = shared/global
+        return true;
+      } catch (error) {
+        console.error('Failed to save to global storage:', error);
+        return false;
+      }
+    }
+    
+    function initializeDatabase() {
+      return {
+        users: [],
+        scores: [],
+        sessions: [],
+        data: [],
+        analytics: {
+          totalPlayers: 0,
+          totalGames: 0,
+          highestScore: 0,
+          lastUpdated: Date.now()
+        }
+      };
+    }
     
     // Login handling
     const usernameInput = document.getElementById('username');
@@ -343,12 +356,23 @@
       }
     });
     
-    function loginSuccess() {
+    async function loginSuccess() {
       loginScreen.style.display = 'none';
       serverInterface.style.display = 'flex';
-      document.getElementById('welcomeMsg').textContent = `Logged in as: ${currentUser}@server [${new Date().toLocaleTimeString()}]`;
+      document.getElementById('welcomeMsg').textContent = `Logged in as: ${currentUser}@global-server [${new Date().toLocaleTimeString()}]`;
       document.getElementById('commandInput').focus();
-      log('Server ready. Type "help" for available commands.');
+      
+      // Log session
+      const db = await getGlobalData();
+      db.sessions.push({
+        user: currentUser,
+        timestamp: Date.now(),
+        ip: 'local'
+      });
+      await saveGlobalData(db);
+      
+      log('Connected to global database. Type "help" for commands.');
+      log('All data is synchronized across all users globally.', 'warning');
     }
     
     function loginFailed() {
@@ -380,73 +404,6 @@
       logsDiv.scrollTop = logsDiv.scrollHeight;
     }
     
-    function verifyApiKey(apiKey) {
-      const key = API_KEYS[apiKey];
-      if (!key) return { valid: false, error: 'Invalid API key' };
-      if (!key.active) return { valid: false, error: 'API key is inactive' };
-      return { valid: true, key: key };
-    }
-    
-    function handleRequest(method, path, body, headers = {}) {
-      const apiKey = headers['x-api-key'] || headers['authorization']?.replace('Bearer ', '');
-      
-      // Auth verification endpoint (doesn't require key)
-      if (path === '/api/auth/verify' && method === 'POST') {
-        const result = verifyApiKey(body.apiKey);
-        return result.valid 
-          ? { success: true, message: 'API key is valid', keyInfo: result.key }
-          : { success: false, error: result.error };
-      }
-      
-      // All other endpoints require valid API key
-      if (!apiKey || !verifyApiKey(apiKey).valid) {
-        return { error: 'Unauthorized - Valid API key required', status: 401 };
-      }
-      
-      // Existing endpoints
-      if (path === '/api/status' && method === 'GET') {
-        return { status: 'ok', message: 'Server is running', timestamp: Date.now() };
-      }
-      
-      if (path === '/api/data' && method === 'GET') {
-        return { data: db.data, count: db.data.length };
-      }
-      
-      if (path === '/api/data' && method === 'POST') {
-        const newItem = { id: Date.now(), ...body };
-        db.data.push(newItem);
-        return { success: true, data: newItem };
-      }
-      
-      if (path.startsWith('/api/users/') && method === 'GET') {
-        const id = parseInt(path.split('/')[3]);
-        const user = db.users.find(u => u.id === id);
-        return user ? { user } : { error: 'User not found' };
-      }
-      
-      // Game endpoints
-      if (path === '/api/game/score' && method === 'POST') {
-        const score = {
-          id: Date.now(),
-          player: body.player || 'Anonymous',
-          score: body.score || 0,
-          timestamp: Date.now()
-        };
-        db.scores.push(score);
-        db.scores.sort((a, b) => b.score - a.score);
-        return { success: true, score, rank: db.scores.indexOf(score) + 1 };
-      }
-      
-      if (path === '/api/game/leaderboard' && method === 'GET') {
-        return { 
-          leaderboard: db.scores.slice(0, 10),
-          total: db.scores.length
-        };
-      }
-      
-      return { error: 'Endpoint not found', status: 404 };
-    }
-    
     commandInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const cmd = commandInput.value.trim();
@@ -457,83 +414,188 @@
       }
     });
     
-    function executeCommand(cmd) {
+    async function executeCommand(cmd) {
       log(`> ${cmd}`, 'info');
       
       const parts = cmd.split(' ');
       const command = parts[0].toLowerCase();
       
       if (command === 'help') {
-        log('Available commands:', 'success');
+        log('═══════════════ AVAILABLE COMMANDS ═══════════════', 'success');
         log('  help              - Show this help message');
-        log('  apikeys           - Show API keys');
-        log('  integrate         - Show integration code');
-        log('  status            - Check server status');
-        log('  get <endpoint>    - GET request to endpoint');
-        log('  post <endpoint> <json> - POST request with JSON body');
-        log('  users             - List all users');
-        log('  scores            - Show game scores');
-        log('  gamedata          - View all game data (raw JSON)');
-        log('  clearscores       - Clear all game scores');
+        log('  stats             - Show global server statistics');
+        log('  scores [limit]    - Show global game scores');
+        log('  players           - List all registered players');
+        log('  sessions          - Show recent login sessions');
+        log('  data              - View all global data (JSON)');
+        log('  add <player> <score> - Manually add a score');
+        log('  purge             - Clear ALL global data (DANGER)');
+        log('  export            - Export database to JSON');
+        log('  integrate         - Show game integration code');
         log('  clear             - Clear the screen');
         log('  logout            - Logout from server');
-      } else if (command === 'apikeys') {
-        log('═══════════════ API KEYS ═══════════════', 'warning');
-        Object.entries(API_KEYS).forEach(([key, info]) => {
-          log(`\nKey: ${key}`, 'success');
-          log(`  Name: ${info.name}`);
-          log(`  Status: ${info.active ? 'ACTIVE' : 'INACTIVE'}`);
-          log(`  Permissions: ${info.permissions.join(', ')}`);
-          log(`  Created: ${info.createdAt}`);
+        log('══════════════════════════════════════════════════', 'success');
+      } else if (command === 'stats') {
+        const db = await getGlobalData();
+        log('═══════════ GLOBAL SERVER STATISTICS ═══════════', 'warning');
+        log(`Total Players: ${db.analytics.totalPlayers}`);
+        log(`Total Games: ${db.analytics.totalGames}`);
+        log(`Highest Score: ${db.analytics.highestScore}`);
+        log(`Total Scores Recorded: ${db.scores.length}`);
+        log(`Active Sessions Today: ${db.sessions.filter(s => Date.now() - s.timestamp < 86400000).length}`);
+        log(`Database Size: ${JSON.stringify(db).length} bytes`);
+        log(`Last Updated: ${new Date(db.analytics.lastUpdated).toLocaleString()}`);
+        log('═══════════════════════════════════════════════', 'warning');
+      } else if (command === 'scores') {
+        const limit = parseInt(parts[1]) || 10;
+        const db = await getGlobalData();
+        if (db.scores.length === 0) {
+          log('No global scores recorded yet', 'warning');
+        } else {
+          log(`═══════════ TOP ${limit} GLOBAL SCORES ═══════════`, 'success');
+          db.scores.slice(0, limit).forEach((s, i) => {
+            const date = new Date(s.timestamp).toLocaleString();
+            log(`  ${i + 1}. ${s.player} - ${s.score} pts [${date}]`);
+          });
+          log(`Total: ${db.scores.length} scores in database`, 'info');
+          log('═══════════════════════════════════════════════', 'success');
+        }
+      } else if (command === 'players') {
+        const db = await getGlobalData();
+        const playerMap = {};
+        db.scores.forEach(s => {
+          if (!playerMap[s.player]) {
+            playerMap[s.player] = { games: 0, totalScore: 0, highScore: 0 };
+          }
+          playerMap[s.player].games++;
+          playerMap[s.player].totalScore += s.score;
+          playerMap[s.player].highScore = Math.max(playerMap[s.player].highScore, s.score);
         });
-        log('\n════════════════════════════════════════', 'warning');
+        
+        log('═══════════ REGISTERED PLAYERS ═══════════', 'success');
+        Object.entries(playerMap).forEach(([name, stats]) => {
+          log(`\n  Player: ${name}`);
+          log(`    Games Played: ${stats.games}`);
+          log(`    High Score: ${stats.highScore}`);
+          log(`    Average Score: ${Math.round(stats.totalScore / stats.games)}`);
+        });
+        log('\n═══════════════════════════════════════════', 'success');
+      } else if (command === 'sessions') {
+        const db = await getGlobalData();
+        log('═══════════ RECENT SESSIONS ═══════════', 'info');
+        db.sessions.slice(-20).reverse().forEach(s => {
+          log(`  ${s.user} - ${new Date(s.timestamp).toLocaleString()}`);
+        });
+        log('═══════════════════════════════════════', 'info');
+      } else if (command === 'data') {
+        const db = await getGlobalData();
+        log('Raw global database:', 'info');
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-block';
+        codeBlock.textContent = JSON.stringify(db, null, 2);
+        logsDiv.appendChild(codeBlock);
+      } else if (command === 'add') {
+        const playerName = parts[1];
+        const score = parseInt(parts[2]);
+        if (!playerName || isNaN(score)) {
+          log('Usage: add <player> <score>', 'error');
+        } else {
+          const db = await getGlobalData();
+          const newScore = {
+            id: Date.now(),
+            player: playerName,
+            score: score,
+            timestamp: Date.now()
+          };
+          db.scores.push(newScore);
+          db.scores.sort((a, b) => b.score - a.score);
+          db.analytics.totalGames++;
+          db.analytics.highestScore = Math.max(db.analytics.highestScore, score);
+          db.analytics.lastUpdated = Date.now();
+          await saveGlobalData(db);
+          log(`Score added: ${playerName} - ${score} pts`, 'success');
+        }
+      } else if (command === 'purge') {
+        log('WARNING: This will delete ALL global data!', 'error');
+        log('Type "purge confirm" to proceed', 'warning');
+        if (parts[1] === 'confirm') {
+          const newDb = initializeDatabase();
+          await saveGlobalData(newDb);
+          log('All global data has been purged!', 'success');
+        }
+      } else if (command === 'export') {
+        const db = await getGlobalData();
+        const dataStr = JSON.stringify(db, null, 2);
+        log('Database exported. Copy the data below:', 'success');
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-block';
+        codeBlock.textContent = dataStr;
+        logsDiv.appendChild(codeBlock);
       } else if (command === 'integrate') {
-        log('═══════════ INTEGRATION CODE ═══════════', 'warning');
+        log('═══════════ GLOBAL INTEGRATION CODE ═══════════', 'warning');
         log('\nCopy this code into your game HTML file:\n', 'success');
         
         const integrationCode = `<script>
-// Backend Server Integration
-const API_KEY = 'sk_test_x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6';
-const SERVER_URL = window.location.origin;
+// Global Backend Server Integration
+const GLOBAL_STORAGE_KEY = 'global_backend_server_v3';
 
-// Make API request
-async function apiRequest(endpoint, method = 'GET', data = null) {
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY
-    }
+// Get global data (shared across ALL users)
+async function getGlobalData() {
+  try {
+    const data = await window.storage.get(GLOBAL_STORAGE_KEY, true);
+    return data ? JSON.parse(data.value) : {
+      scores: [],
+      analytics: { totalPlayers: 0, totalGames: 0, highestScore: 0 }
+    };
+  } catch (error) {
+    return { scores: [], analytics: { totalPlayers: 0, totalGames: 0, highestScore: 0 } };
+  }
+}
+
+// Save global data
+async function saveGlobalData(data) {
+  try {
+    await window.storage.set(GLOBAL_STORAGE_KEY, JSON.stringify(data), true);
+    return true;
+  } catch (error) {
+    console.error('Failed to save:', error);
+    return false;
+  }
+}
+
+// Submit score to global leaderboard
+async function submitScore(playerName, score) {
+  const db = await getGlobalData();
+  const newScore = {
+    id: Date.now(),
+    player: playerName,
+    score: score,
+    timestamp: Date.now()
   };
   
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
+  db.scores.push(newScore);
+  db.scores.sort((a, b) => b.score - a.score);
+  db.analytics.totalGames++;
+  db.analytics.highestScore = Math.max(db.analytics.highestScore || 0, score);
+  db.analytics.lastUpdated = Date.now();
   
-  const response = await fetch(SERVER_URL + endpoint, options);
-  return await response.json();
+  await saveGlobalData(db);
+  console.log('Score submitted to global leaderboard:', newScore);
+  return { success: true, score: newScore, rank: db.scores.indexOf(newScore) + 1 };
 }
 
-// Submit game score
-async function submitScore(playerName, score) {
-  const result = await apiRequest('/api/game/score', 'POST', {
-    player: playerName,
-    score: score
-  });
-  console.log('Score submitted:', result);
-  return result;
-}
-
-// Get leaderboard
+// Get global leaderboard
 async function getLeaderboard() {
-  const result = await apiRequest('/api/game/leaderboard');
-  console.log('Leaderboard:', result);
-  return result;
+  const db = await getGlobalData();
+  return { 
+    scores: db.scores.slice(0, 10),
+    total: db.scores.length 
+  };
 }
 
 // Example usage:
-// submitScore('Player1', 1000);
-// getLeaderboard();
+// await submitScore('Player1', 1000);
+// const leaderboard = await getLeaderboard();
 <\/script>`;
         
         const codeBlock = document.createElement('div');
@@ -541,65 +603,8 @@ async function getLeaderboard() {
         codeBlock.textContent = integrationCode;
         logsDiv.appendChild(codeBlock);
         
-        log('\n════════════════════════════════════════', 'warning');
-        log('API endpoints available:', 'info');
-        log('  /api/game/score (POST) - Submit score');
-        log('  /api/game/leaderboard (GET) - Get top scores');
-        log('  /api/data (GET/POST) - Store custom data');
-      } else if (command === 'status') {
-        const response = handleRequest('GET', '/api/status', null, {'x-api-key': Object.keys(API_KEYS)[0]});
-        log(`Server Status: ${response.status?.toUpperCase() || 'ERROR'}`, response.error ? 'error' : 'success');
-        log(`Response: ${JSON.stringify(response, null, 2)}`);
-      } else if (command === 'get') {
-        const endpoint = parts[1] || '/api/status';
-        const response = handleRequest('GET', endpoint, null, {'x-api-key': Object.keys(API_KEYS)[0]});
-        log(`Response: ${JSON.stringify(response, null, 2)}`, response.error ? 'error' : 'success');
-      } else if (command === 'post') {
-        const endpoint = parts[1];
-        const jsonData = parts.slice(2).join(' ');
-        try {
-          const body = jsonData ? JSON.parse(jsonData) : {};
-          const response = handleRequest('POST', endpoint, body, {'x-api-key': Object.keys(API_KEYS)[0]});
-          log(`Response: ${JSON.stringify(response, null, 2)}`, response.error ? 'error' : 'success');
-        } catch (e) {
-          log('Invalid JSON format', 'error');
-        }
-      } else if (command === 'users') {
-        log('Registered users:', 'success');
-        db.users.forEach(u => log(`  [${u.id}] ${u.name} - ${u.email}`));
-      } else if (command === 'scores') {
-        // Read from the shared localStorage that the game uses
-        const gameData = localStorage.getItem('spaceShooter_serverData');
-        if (gameData) {
-          const data = JSON.parse(gameData);
-          if (data.scores && data.scores.length > 0) {
-            log('═══════════ GAME LEADERBOARD ═══════════', 'success');
-            data.scores.slice(0, 10).forEach((s, i) => {
-              const date = new Date(s.timestamp).toLocaleString();
-              log(`  ${i + 1}. ${s.player} - ${s.score} pts [${date}]`);
-            });
-            log(`Total scores: ${data.scores.length}`, 'info');
-            log('════════════════════════════════════════', 'success');
-          } else {
-            log('No game scores found', 'warning');
-          }
-        } else {
-          log('No game data found. Play the game first!', 'warning');
-        }
-      } else if (command === 'gamedata') {
-        const gameData = localStorage.getItem('spaceShooter_serverData');
-        if (gameData) {
-          log('Raw game data:', 'info');
-          const codeBlock = document.createElement('div');
-          codeBlock.className = 'code-block';
-          codeBlock.textContent = JSON.stringify(JSON.parse(gameData), null, 2);
-          logsDiv.appendChild(codeBlock);
-        } else {
-          log('No game data found', 'warning');
-        }
-      } else if (command === 'clearscores') {
-        localStorage.removeItem('spaceShooter_serverData');
-        log('All game scores cleared!', 'success');
+        log('\n═══════════════════════════════════════════════', 'warning');
+        log('This code uses GLOBAL storage - all players share the same leaderboard!', 'info');
       } else if (command === 'clear') {
         logsDiv.innerHTML = '';
       } else if (command === 'logout') {
@@ -608,12 +613,6 @@ async function getLeaderboard() {
         log(`Unknown command: ${command}. Type 'help' for available commands.`, 'error');
       }
     }
-    
-    // Make handleRequest available globally for external integration
-    window.serverAPI = {
-      request: handleRequest,
-      verifyKey: verifyApiKey
-    };
   </script>
 </body>
 </html>
